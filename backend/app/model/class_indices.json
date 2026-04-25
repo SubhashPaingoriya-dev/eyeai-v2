@@ -1,0 +1,7 @@
+{
+  "cataract": 0,
+  "diabetic_retinopathy": 1,
+  "glaucoma": 2,
+  "myopia": 3,
+  "normal": 4
+}

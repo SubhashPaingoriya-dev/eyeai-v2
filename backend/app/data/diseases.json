@@ -1,0 +1,109 @@
+{
+  "diseases": {
+    "normal": {
+      "id": "normal",
+      "name": "Normal / Healthy Eye",
+      "icon": "✅",
+      "severity": "none",
+      "color": "#10b981",
+      "description": "The eye appears healthy with no detectable signs of disease or abnormality in the fundus image. The optic disc, macula, and retinal vessels show normal characteristics.",
+      "symptoms": [
+        "Clear, sharp vision",
+        "No floaters or flashes",
+        "Normal color perception",
+        "No pain or discomfort"
+      ],
+      "recommendation": "Continue regular annual eye check-ups. Maintain a healthy diet rich in leafy greens and omega-3 fatty acids. Wear UV-protective sunglasses outdoors.",
+      "urgency": "routine",
+      "urgency_label": "Routine Check-up",
+      "prevalence": "Majority of population",
+      "risk_factors": []
+    },
+    "cataract": {
+      "id": "cataract",
+      "name": "Cataract",
+      "icon": "🔵",
+      "severity": "moderate",
+      "color": "#3b82f6",
+      "description": "A cataract is a clouding of the eye's natural lens, which lies behind the iris and the pupil. It is one of the leading causes of vision impairment worldwide, affecting over 24 million Americans over age 40.",
+      "symptoms": [
+        "Cloudy, blurry, or foggy vision",
+        "Increased sensitivity to glare & light",
+        "Seeing 'halos' around lights",
+        "Faded or yellowed colors",
+        "Frequent changes in eyeglass prescription",
+        "Double vision in a single eye"
+      ],
+      "recommendation": "Schedule a consultation with an ophthalmologist. Early cataracts can be managed with updated glasses or contact lenses. Advanced cataracts typically require surgical removal (phacoemulsification), which is a safe and highly effective procedure.",
+      "urgency": "soon",
+      "urgency_label": "Consult Soon",
+      "prevalence": "Over 51% of global blindness cases",
+      "risk_factors": ["Age > 60", "Diabetes", "Prolonged UV exposure", "Smoking", "Steroid use"]
+    },
+    "glaucoma": {
+      "id": "glaucoma",
+      "name": "Glaucoma",
+      "icon": "🟡",
+      "severity": "high",
+      "color": "#f59e0b",
+      "description": "Glaucoma is a group of eye conditions that damage the optic nerve, often caused by abnormally high pressure in the eye (intraocular pressure). It is a leading cause of blindness for people over 60.",
+      "symptoms": [
+        "Gradual loss of peripheral (side) vision",
+        "Tunnel vision in advanced stages",
+        "Severe eye pain (acute angle-closure)",
+        "Nausea and vomiting",
+        "Sudden onset of visual disturbance",
+        "Blurred vision and halos around lights"
+      ],
+      "recommendation": "Seek prompt medical attention. Glaucoma is the 'silent thief of sight' — vision loss is irreversible. Treatment options include prescription eye drops, laser treatment (trabeculoplasty), or surgery. Early detection is critical to preserving vision.",
+      "urgency": "urgent",
+      "urgency_label": "Urgent Consultation",
+      "prevalence": "Affects ~80 million people globally",
+      "risk_factors": ["Age > 60", "Family history", "High eye pressure", "Thin corneas", "Diabetes", "High myopia"]
+    },
+    "diabetic_retinopathy": {
+      "id": "diabetic_retinopathy",
+      "name": "Diabetic Retinopathy",
+      "icon": "🔴",
+      "severity": "high",
+      "color": "#ef4444",
+      "description": "Diabetic retinopathy is a diabetes complication that affects the eyes, caused by damage to the blood vessels of the light-sensitive tissue at the back of the eye (retina). It is the leading cause of vision loss among working-age adults.",
+      "symptoms": [
+        "Spots or dark strings floating in vision (floaters)",
+        "Blurred or fluctuating vision",
+        "Dark or empty areas in vision",
+        "Vision loss",
+        "Difficulty with color perception",
+        "Microaneurysms visible on fundus exam"
+      ],
+      "recommendation": "Immediately consult an ophthalmologist and your diabetes care team. Blood sugar, blood pressure, and cholesterol management are crucial. Treatment includes laser treatment (photocoagulation), anti-VEGF injections, or vitrectomy in advanced cases.",
+      "urgency": "urgent",
+      "urgency_label": "Immediate Attention",
+      "prevalence": "Affects ~1 in 3 diabetics over 40",
+      "risk_factors": ["Diabetes (Type 1 & 2)", "Poor blood sugar control", "High blood pressure", "High cholesterol", "Pregnancy", "Duration of diabetes"]
+    },
+    "myopia": {
+      "id": "myopia",
+      "name": "Myopia (Nearsightedness)",
+      "icon": "🟠",
+      "severity": "low",
+      "color": "#f97316",
+      "description": "Myopia is a refractive error causing distant objects to appear blurry while close objects can be seen clearly. High myopia can increase the risk of serious complications including retinal detachment, glaucoma, and macular degeneration.",
+      "symptoms": [
+        "Blurry vision when looking at distant objects",
+        "Need to squint or partially close eyes",
+        "Headaches from eye strain",
+        "Difficulty seeing while driving at night",
+        "Eyestrain and fatigue",
+        "More comfortable seeing close objects"
+      ],
+      "recommendation": "Consult an optometrist or ophthalmologist for proper refraction testing. Corrective measures include glasses, contact lenses, or refractive surgery (LASIK/PRK). Regular follow-ups are important, especially for high myopia cases.",
+      "urgency": "routine",
+      "urgency_label": "Routine Consultation",
+      "prevalence": "Affects ~30% of the global population",
+      "risk_factors": ["Genetics", "Excessive near work", "Limited outdoor time", "Urban environment", "Childhood onset"]
+    }
+  },
+  "model_classes": ["normal", "cataract", "glaucoma", "diabetic_retinopathy", "myopia"],
+  "version": "1.0.0"
+}
