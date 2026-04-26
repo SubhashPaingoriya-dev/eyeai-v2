@@ -144,148 +144,54 @@
 
 #     return {"message": "All history cleared"}
 
-# from fastapi import APIRouter, HTTPException
-# from app.database import supabase
-
-# router = APIRouter()
-
-# # @router.get("/history")
-# # def get_history():
-# #     if not supabase:
-# #         return {"history": [], "total": 0, "db_available": False}
-
-# #     try:
-# #         response = supabase.table("history").select("*").order("created_at", desc=True).execute()
-
-# #         data = response.data if response.data else []
-
-# #         return {
-# #             "history": data,
-# #             "total": len(data),
-# #             "db_available": True
-# #         }
-
-# #     except Exception as e:
-# #         return {"history": [], "total": 0, "error": str(e)}
-
-# @router.get("/history")
-# async def get_history():
-
-#     if not supabase:
-#         return {"history": [], "total": 0}
-
-#     try:
-#         response = supabase.table("history").select("*").order("timestamp", desc=True).execute()
-
-#         return {
-#             "history": response.data,
-#             "total": len(response.data)
-#         }
-
-#     except Exception as e:
-#         return {"history": [], "error": str(e)}
-
-
-# @router.delete("/history/{prediction_id}")
-# def delete_prediction(prediction_id: str):
-#     if not supabase:
-#         raise HTTPException(status_code=503, detail="Database not available")
-
-#     supabase.table("history").delete().eq("id", prediction_id).execute()
-
-#     return {"message": "Deleted", "id": prediction_id}
-
-
-# @router.delete("/history")
-# def clear_history():
-#     if not supabase:
-#         raise HTTPException(status_code=503, detail="Database not available")
-
-#     supabase.table("history").delete().neq("id", "").execute()
-
-#     return {"message": "All history cleared"}
-
 from fastapi import APIRouter, HTTPException
-from app.database import supabase
+from app.database import get_predictions_collection
 
 router = APIRouter()
 
-# @router.get("/history")
-# async def get_history():
-
-#     print("🔥 API HIT /history")
-
-#     if not supabase:
-#         print("❌ Supabase is NONE")
-#         return {"history": [], "total": 0}
-
-#     try:
-#         response = supabase.table("history").select("*").execute()
-
-#         print("✅ RAW RESPONSE:", response)
-
-#         # data = response.data if response.data else []
-#         data = response.model_dump().get("data", [])
-
-#         print("✅ DATA:", data)
-
-#         return {
-#             "history": data,
-#             "total": len(data)
-#         }
-
-#     except Exception as e:
-#         print("❌ ERROR:", str(e))
-#         return {"history": [], "error": str(e)}
-
-from fastapi import APIRouter, HTTPException
-from app.database import supabase
-
-router = APIRouter()
-
+# 👉 GET HISTORY
 @router.get("/history")
 async def get_history():
-
-    print("🔥 HIT HISTORY API")
-
-    if not supabase:
-        print("❌ supabase is None")
-        return {"history": [], "total": 0}
-
     try:
-        response = supabase.table("history").select("*").execute()
+        collection = get_predictions_collection()
 
-        print("🔥 FULL RESPONSE:", response)
+        if collection is None:
+            return {"history": [], "total": 0}
 
-        data = response.data
+        # 👉 latest first
+        data = await collection.find().sort("timestamp", -1).to_list(100)
 
-        print("🔥 DATA:", data)
+        # 👉 Mongo _id हटाने के लिए (optional clean)
+        for item in data:
+            item["_id"] = str(item["_id"])
 
         return {
-            "history": data if data else [],
-            "total": len(data) if data else 0
+            "history": data,
+            "total": len(data)
         }
 
     except Exception as e:
-        print("❌ ERROR:", e)
-        return {"history": [], "error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
 
+# 👉 DELETE SINGLE
 @router.delete("/history/{prediction_id}")
-def delete_prediction(prediction_id: str):
-    if not supabase:
-        raise HTTPException(status_code=503, detail="Database not available")
+async def delete_prediction(prediction_id: str):
+    collection = get_predictions_collection()
 
-    supabase.table("history").delete().eq("id", prediction_id).execute()
+    result = await collection.delete_one({"id": prediction_id})
+
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Not found")
 
     return {"message": "Deleted", "id": prediction_id}
 
 
+# 👉 DELETE ALL
 @router.delete("/history")
-def clear_history():
-    if not supabase:
-        raise HTTPException(status_code=503, detail="Database not available")
+async def clear_history():
+    collection = get_predictions_collection()
 
-    supabase.table("history").delete().neq("id", "").execute()
+    await collection.delete_many({})
 
     return {"message": "All history cleared"}

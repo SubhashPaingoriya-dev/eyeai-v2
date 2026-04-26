@@ -15,7 +15,7 @@
 # from fastapi.responses import JSONResponse
 
 # from app.model.predict import predict as run_prediction
-# # from app.database import get_predictions_collection
+# from app.database import get_predictions_collection
 
 # logger = logging.getLogger(__name__)
 # router = APIRouter()
@@ -142,95 +142,46 @@
 #     return JSONResponse(content=response_data, status_code=200)
 
 
-"""
-Prediction API Routes
-POST /api/predict - Upload image and get prediction
-"""
-
+from fastapi import APIRouter, UploadFile, File, HTTPException
+from app.database import get_predictions_collection
+from datetime import datetime
 import uuid
-import base64
-import logging
-from datetime import datetime, timezone
-from typing import Optional
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Form
-from fastapi.responses import JSONResponse
-
-from app.model.predict import predict as run_prediction
-from app.database import insert_prediction   # Supabase
-
-logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# ─── Constants ────────────────────────────────────────────────
-ALLOWED_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/webp", "image/bmp"}
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
-
-
-# ─── Prediction Endpoint ──────────────────────────────────────
 @router.post("/predict")
-async def predict_disease(
-    file: UploadFile = File(...),
-    generate_heatmap: bool = Form(default=True),
-    session_id: Optional[str] = Form(default=None),
-):
-
-    # ── Validate file type ────────────────────────────────────
-    if file.content_type not in ALLOWED_TYPES:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid file type. Use JPG/PNG/WebP"
-        )
-
-    image_bytes = await file.read()
-
-    if len(image_bytes) > MAX_FILE_SIZE:
-        raise HTTPException(status_code=413, detail="File too large")
-
-    if len(image_bytes) < 1024:
-        raise HTTPException(status_code=400, detail="Invalid image")
-
-    logger.info(f"Processing image: {file.filename}")
-
-    # ── Run ML Model ──────────────────────────────────────────
-    prediction = run_prediction(image_bytes, generate_heatmap=generate_heatmap)
-
-    if "error" in prediction:
-        raise HTTPException(status_code=500, detail=prediction["error"])
-
-    # ── Build Response ────────────────────────────────────────
-    prediction_id = str(uuid.uuid4())
-    timestamp = datetime.now(timezone.utc).isoformat()
-
-    image_b64 = base64.b64encode(image_bytes).decode("utf-8")
-    image_data_url = f"data:{file.content_type};base64,{image_b64}"
-
-    response_data = {
-        "id": prediction_id,
-        "timestamp": timestamp,
-        "filename": file.filename,
-        "image_url": image_data_url,
-        "prediction": {
-            "disease": prediction["disease"],
-            "confidence": prediction["confidence"],
-        },
-        "severity": "moderate",  # simple placeholder
-        "session_id": session_id,
-    }
-
-    # ── Save to Supabase ──────────────────────────────────────
+async def predict(file: UploadFile = File(...)):
     try:
-        insert_prediction({
-            "id": prediction_id,
-            "timestamp": timestamp,
-            "filename": file.filename,
-            "session_id": session_id,
-            "disease": prediction["disease"],
-            "confidence": prediction["confidence"],
-            "severity": "moderate"
-        })
-        logger.info(f"Saved prediction {prediction_id}")
-    except Exception as e:
-        logger.warning(f"DB save failed: {e}")
+        # 👉 1. Basic validation
+        if not file:
+            raise HTTPException(status_code=400, detail="No file uploaded")
 
-    return JSONResponse(content=response_data, status_code=200)
+        # 👉 2. Fake prediction (replace with your ML model later)
+        predicted_class = "cataract"
+        confidence = 0.95
+
+        # 👉 3. Prepare data
+        data = {
+            "id": str(uuid.uuid4()),
+            "timestamp": datetime.utcnow().isoformat(),
+            "filename": file.filename,
+            "disease": predicted_class,
+            "confidence": confidence
+        }
+
+        # 👉 4. Insert into MongoDB
+        collection = get_predictions_collection()
+
+        if collection:
+            await collection.insert_one(data)
+        else:
+            print("⚠️ DB not connected")
+
+        # 👉 5. Response
+        return {
+            "message": "Prediction successful",
+            "data": data
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
