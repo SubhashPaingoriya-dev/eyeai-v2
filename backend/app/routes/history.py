@@ -149,24 +149,41 @@ from app.database import supabase
 
 router = APIRouter()
 
+# @router.get("/history")
+# def get_history():
+#     if not supabase:
+#         return {"history": [], "total": 0, "db_available": False}
+
+#     try:
+#         response = supabase.table("history").select("*").order("created_at", desc=True).execute()
+
+#         data = response.data if response.data else []
+
+#         return {
+#             "history": data,
+#             "total": len(data),
+#             "db_available": True
+#         }
+
+#     except Exception as e:
+#         return {"history": [], "total": 0, "error": str(e)}
+
 @router.get("/history")
-def get_history():
+async def get_history():
+
     if not supabase:
-        return {"history": [], "total": 0, "db_available": False}
+        return {"history": [], "total": 0}
 
     try:
-        response = supabase.table("history").select("*").order("created_at", desc=True).execute()
-
-        data = response.data if response.data else []
+        response = supabase.table("history").select("*").order("timestamp", desc=True).execute()
 
         return {
-            "history": data,
-            "total": len(data),
-            "db_available": True
+            "history": response.data,
+            "total": len(response.data)
         }
 
     except Exception as e:
-        return {"history": [], "total": 0, "error": str(e)}
+        return {"history": [], "error": str(e)}
 
 
 @router.delete("/history/{prediction_id}")
