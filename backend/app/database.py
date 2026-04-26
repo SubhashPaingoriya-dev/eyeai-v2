@@ -222,6 +222,8 @@
 #         return None
 #     return supabase.table("history").insert(data).execute()
 
+
+
 import os
 from dotenv import load_dotenv
 from supabase import create_client
@@ -243,6 +245,7 @@ except Exception as e:
     print("❌ Supabase error:", e)
     supabase = None
 
+print("🔥 SUPABASE URL:", SUPABASE_URL)
 
 def insert_prediction(data: dict):
     if not supabase:
