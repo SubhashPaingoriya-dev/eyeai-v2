@@ -2,6 +2,9 @@
 OcuScan AI — FastAPI Backend
 Serves both the REST API and the React static build.
 """
+
+print("APP STARTING...")
+
 import os, time, logging
 from pathlib import Path
 from fastapi import FastAPI, Request

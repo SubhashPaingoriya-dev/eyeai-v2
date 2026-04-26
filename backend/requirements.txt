@@ -17,6 +17,8 @@ python-dotenv==1.0.1
 aiofiles==24.1.0
 
 # ─── For training only (not needed to run the API server) ───────
+
+supabase==2.4.0
 # tensorflow==2.18.0
 # opencv-python-headless==4.10.0.84
 # matplotlib==3.9.0
