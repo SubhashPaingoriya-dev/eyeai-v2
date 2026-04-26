@@ -197,6 +197,31 @@
 #         logger.error(f"Fetch by id failed: {e}")
 #         return None
 
+# import os
+# from dotenv import load_dotenv
+# from supabase import create_client
+
+# load_dotenv()
+
+# SUPABASE_URL = os.getenv("SUPABASE_URL")
+# SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+
+# supabase = None
+
+# if SUPABASE_URL and SUPABASE_KEY:
+#     try:
+#         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+#         print("✅ Supabase connected")
+#     except Exception as e:
+#         print("❌ Supabase error:", e)
+#         supabase = None
+
+
+# def insert_prediction(data: dict):
+#     if not supabase:
+#         return None
+#     return supabase.table("history").insert(data).execute()
+
 import os
 from dotenv import load_dotenv
 from supabase import create_client
@@ -208,16 +233,25 @@ SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
 supabase = None
 
-if SUPABASE_URL and SUPABASE_KEY:
-    try:
+try:
+    if SUPABASE_URL and SUPABASE_KEY:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         print("✅ Supabase connected")
-    except Exception as e:
-        print("❌ Supabase error:", e)
-        supabase = None
+    else:
+        print("❌ Missing Supabase credentials")
+except Exception as e:
+    print("❌ Supabase error:", e)
+    supabase = None
 
 
 def insert_prediction(data: dict):
     if not supabase:
+        print("⚠️ Supabase not available")
         return None
-    return supabase.table("history").insert(data).execute()
+
+    try:
+        response = supabase.table("history").insert(data).execute()
+        return response
+    except Exception as e:
+        print("❌ Insert error:", e)
+        return None
