@@ -246,20 +246,28 @@ router = APIRouter()
 @router.get("/history")
 async def get_history():
 
+    print("🔥 HIT HISTORY API")
+
     if not supabase:
+        print("❌ supabase is None")
         return {"history": [], "total": 0}
 
     try:
         response = supabase.table("history").select("*").execute()
 
-        data = response.model_dump().get("data", [])
+        print("🔥 FULL RESPONSE:", response)
+
+        data = response.data
+
+        print("🔥 DATA:", data)
 
         return {
-            "history": data,
-            "total": len(data)
+            "history": data if data else [],
+            "total": len(data) if data else 0
         }
 
     except Exception as e:
+        print("❌ ERROR:", e)
         return {"history": [], "error": str(e)}
 
 
