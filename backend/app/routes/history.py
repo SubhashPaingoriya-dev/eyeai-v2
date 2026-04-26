@@ -144,29 +144,71 @@
 
 #     return {"message": "All history cleared"}
 
+# from fastapi import APIRouter, HTTPException
+# from app.database import supabase
+
+# router = APIRouter()
+
+# # @router.get("/history")
+# # def get_history():
+# #     if not supabase:
+# #         return {"history": [], "total": 0, "db_available": False}
+
+# #     try:
+# #         response = supabase.table("history").select("*").order("created_at", desc=True).execute()
+
+# #         data = response.data if response.data else []
+
+# #         return {
+# #             "history": data,
+# #             "total": len(data),
+# #             "db_available": True
+# #         }
+
+# #     except Exception as e:
+# #         return {"history": [], "total": 0, "error": str(e)}
+
+# @router.get("/history")
+# async def get_history():
+
+#     if not supabase:
+#         return {"history": [], "total": 0}
+
+#     try:
+#         response = supabase.table("history").select("*").order("timestamp", desc=True).execute()
+
+#         return {
+#             "history": response.data,
+#             "total": len(response.data)
+#         }
+
+#     except Exception as e:
+#         return {"history": [], "error": str(e)}
+
+
+# @router.delete("/history/{prediction_id}")
+# def delete_prediction(prediction_id: str):
+#     if not supabase:
+#         raise HTTPException(status_code=503, detail="Database not available")
+
+#     supabase.table("history").delete().eq("id", prediction_id).execute()
+
+#     return {"message": "Deleted", "id": prediction_id}
+
+
+# @router.delete("/history")
+# def clear_history():
+#     if not supabase:
+#         raise HTTPException(status_code=503, detail="Database not available")
+
+#     supabase.table("history").delete().neq("id", "").execute()
+
+#     return {"message": "All history cleared"}
+
 from fastapi import APIRouter, HTTPException
 from app.database import supabase
 
 router = APIRouter()
-
-# @router.get("/history")
-# def get_history():
-#     if not supabase:
-#         return {"history": [], "total": 0, "db_available": False}
-
-#     try:
-#         response = supabase.table("history").select("*").order("created_at", desc=True).execute()
-
-#         data = response.data if response.data else []
-
-#         return {
-#             "history": data,
-#             "total": len(data),
-#             "db_available": True
-#         }
-
-#     except Exception as e:
-#         return {"history": [], "total": 0, "error": str(e)}
 
 @router.get("/history")
 async def get_history():
@@ -175,11 +217,13 @@ async def get_history():
         return {"history": [], "total": 0}
 
     try:
-        response = supabase.table("history").select("*").order("timestamp", desc=True).execute()
+        response = supabase.table("history").select("*").execute()
+
+        data = response.data if response.data else []
 
         return {
-            "history": response.data,
-            "total": len(response.data)
+            "history": data,
+            "total": len(data)
         }
 
     except Exception as e:
