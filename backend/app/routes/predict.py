@@ -149,18 +149,23 @@ import uuid
 
 router = APIRouter()
 
+
 @router.post("/predict")
 async def predict(file: UploadFile = File(...)):
     try:
-        # 👉 1. Basic validation
+        # ✅ 1. Validate file
         if not file:
             raise HTTPException(status_code=400, detail="No file uploaded")
 
-        # 👉 2. Fake prediction (replace with your ML model later)
+        # (Optional) file type check
+        if not file.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="Only image files allowed")
+
+        # ✅ 2. Dummy prediction (replace later with ML model)
         predicted_class = "cataract"
         confidence = 0.95
 
-        # 👉 3. Prepare data
+        # ✅ 3. Prepare data
         data = {
             "id": str(uuid.uuid4()),
             "timestamp": datetime.utcnow().isoformat(),
@@ -169,18 +174,26 @@ async def predict(file: UploadFile = File(...)):
             "confidence": confidence
         }
 
-        # 👉 4. Insert into MongoDB
+        # ✅ 4. Insert into MongoDB
         collection = get_predictions_collection()
 
-        if collection:
-            await collection.insert_one(data)
-        else:
-            print("⚠️ DB not connected")
+        saved = False
 
-        # 👉 5. Response
+        if collection is not None:
+            try:
+                result = await collection.insert_one(data)
+                print("✅ Mongo Inserted ID:", result.inserted_id)
+                saved = True
+            except Exception as db_error:
+                print("❌ Mongo insert error:", db_error)
+        else:
+            print("❌ MongoDB not connected")
+
+        # ✅ 5. Final response
         return {
             "message": "Prediction successful",
-            "data": data
+            "data": data,
+            "saved": saved
         }
 
     except Exception as e:
