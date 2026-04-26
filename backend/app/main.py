@@ -2,10 +2,6 @@
 # OcuScan AI — FastAPI Backend
 # Serves both the REST API and the React static build.
 # """
-
-# print("REDEPLOY TRIGGER 123")
-# print("APP STARTING...")
-
 # import os, time, logging
 # from pathlib import Path
 # from fastapi import FastAPI, Request
@@ -14,7 +10,7 @@
 # from fastapi.staticfiles import StaticFiles
 
 # from app.routes import predict, diseases, history
-# # from app.database import connect_db, close_db
+# from app.database import connect_db, close_db
 
 # logging.basicConfig(level=logging.INFO,
 #     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -103,7 +99,7 @@
 # @app.on_event("startup")
 # async def startup():
 #     logger.info("🚀 Starting OcuScan AI API...")
-#     # await connect_db()
+#     await connect_db()
 #     if FRONTEND_BUILD.exists():
 #         logger.info(f"✅ React build found at {FRONTEND_BUILD}")
 #     else:
@@ -111,7 +107,7 @@
 
 # @app.on_event("shutdown")
 # async def shutdown():
-#     # await close_db()
+#     await close_db()
 
 # # ─── API Routes ───────────────────────────────────────────────────────────────
 # app.include_router(predict.router,  prefix="/api", tags=["Prediction"])
@@ -187,39 +183,38 @@
 #     return {"status": "ok", "model_loaded": model_ok, "timestamp": __import__("time").time()}
 
 
-
 """
-OcuScan AI — Clean Backend (FINAL STABLE)
+OcuScan AI — FastAPI Backend
+Serves both the REST API and the React static build.
 """
 
-print("🚀 APP STARTING...")
-
-import time
-import logging
+import os, time, logging
 from pathlib import Path
-
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.routes import predict, diseases, history
-from app.database import supabase
+from app.database import connect_db, close_db
 
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-
-logging.basicConfig(level=logging.INFO)
+# ─── Logging ─────────────────────────────────────────────
+logging.basicConfig(level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+# ─── Frontend build path ─────────────────────────────────
 FRONTEND_BUILD = Path(__file__).parent.parent.parent / "frontend" / "build"
 
+# ─── FastAPI App ─────────────────────────────────────────
 app = FastAPI(
-    title="OcuScan AI",
+    title="OcuScan AI — Eye Disease Detection",
     version="1.0.0",
     docs_url="/api/docs",
+    redoc_url="/api/redoc",
 )
 
-# ─── CORS ───
+# ─── CORS ────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -228,73 +223,82 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ─── Middleware ───
+# ─── Request timing middleware ───────────────────────────
 @app.middleware("http")
 async def add_timing(request: Request, call_next):
-    t = time.time()
+    start = time.time()
     response = await call_next(request)
-    response.headers["X-Process-Time"] = f"{time.time()-t:.4f}s"
+    response.headers["X-Process-Time"] = f"{time.time() - start:.4f}s"
     return response
 
-# ─── Startup ───
+# ─── Lifecycle ───────────────────────────────────────────
 @app.on_event("startup")
 async def startup():
-    logger.info("✅ Backend started successfully")
+    logger.info("🚀 Starting OcuScan AI API...")
+    await connect_db()
 
-# ─── Routes ───
-app.include_router(predict.router, prefix="/api")
-app.include_router(diseases.router, prefix="/api")
-app.include_router(history.router, prefix="/api")
+    if FRONTEND_BUILD.exists():
+        logger.info(f"✅ React build found at {FRONTEND_BUILD}")
+    else:
+        logger.info("ℹ️ Frontend not built yet")
 
-# ─── Health ───
-@app.get("/api/health")
+@app.on_event("shutdown")
+async def shutdown():
+    await close_db()
+
+# ─── API Routes ──────────────────────────────────────────
+app.include_router(predict.router,  prefix="/api", tags=["Prediction"])
+app.include_router(diseases.router, prefix="/api", tags=["Diseases"])
+app.include_router(history.router,  prefix="/api", tags=["History"])
+
+# ─── Health Check ────────────────────────────────────────
+@app.get("/api/health", tags=["System"])
 async def health():
     return {
         "status": "ok",
         "timestamp": time.time(),
-        "supabase": supabase is not None
+        "frontend_built": FRONTEND_BUILD.exists(),
     }
 
-# ─── PDF ───
-@app.get("/api/report/{prediction_id}")
-def generate_pdf(prediction_id: str):
+# ─── Serve React build ───────────────────────────────────
+if FRONTEND_BUILD.exists():
 
-    if not supabase:
-        return {"error": "Database not connected"}
+    app.mount(
+        "/static",
+        StaticFiles(directory=str(FRONTEND_BUILD / "static")),
+        name="static",
+    )
 
-    response = supabase.table("history").select("*").eq("id", prediction_id).execute()
+    @app.get("/", include_in_schema=False)
+    @app.get("/{path:path}", include_in_schema=False)
+    async def serve_react(path: str = ""):
+        index = FRONTEND_BUILD / "index.html"
+        if index.exists():
+            return FileResponse(str(index))
+        return JSONResponse({"status": "Frontend not built"})
 
-    if not response.data:
-        return {"error": "Prediction not found"}
+else:
 
-    data = response.data[0]
+    @app.get("/", tags=["System"])
+    async def root():
+        return {
+            "status": "running 🚀",
+            "docs": "/api/docs"
+        }
 
-    file_name = f"report_{prediction_id}.pdf"
-
-    c = canvas.Canvas(file_name, pagesize=letter)
-
-    c.drawString(100, 750, "EyeAI Report")
-    c.drawString(100, 720, f"ID: {prediction_id}")
-    c.drawString(100, 700, f"Disease: {data.get('disease')}")
-    c.drawString(100, 680, f"Confidence: {data.get('confidence')}")
-    c.drawString(100, 660, f"Severity: {data.get('severity')}")
-    c.drawString(100, 640, f"Timestamp: {data.get('timestamp')}")
-
-    c.save()
-
-    return FileResponse(file_name, media_type="application/pdf", filename=file_name)
-
-# ─── Root ───
-@app.get("/")
-async def root():
-    return {"status": "running 🚀", "docs": "/api/docs"}
-
-# ─── Error Handlers ───
+# ─── Error handlers ──────────────────────────────────────
 @app.exception_handler(404)
 async def not_found(req, exc):
+    if FRONTEND_BUILD.exists():
+        return FileResponse(str(FRONTEND_BUILD / "index.html"))
     return JSONResponse(status_code=404, content={"error": "Not found"})
 
 @app.exception_handler(500)
 async def server_error(req, exc):
     logger.error(f"Server error: {exc}")
     return JSONResponse(status_code=500, content={"error": "Internal server error"})
+
+# ─── Run locally ─────────────────────────────────────────
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
