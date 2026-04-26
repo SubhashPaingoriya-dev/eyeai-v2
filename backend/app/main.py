@@ -3,6 +3,7 @@ OcuScan AI — FastAPI Backend
 Serves both the REST API and the React static build.
 """
 
+print("REDEPLOY TRIGGER 123")
 print("APP STARTING...")
 
 import os, time, logging
