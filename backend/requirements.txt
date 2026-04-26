@@ -24,4 +24,4 @@ aiofiles==24.1.0
 
 
 supabase==2.4.0
-# force redeploy
+# redeploy fix
