@@ -157,7 +157,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Form
 from fastapi.responses import JSONResponse
 
 from app.model.predict import predict as run_prediction
-from app.database import insert_prediction   # ✅ Supabase
+from app.database import insert_prediction   # Supabase
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
