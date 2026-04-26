@@ -210,23 +210,49 @@ from app.database import supabase
 
 router = APIRouter()
 
+# @router.get("/history")
+# async def get_history():
+
+#     print("🔥 API HIT /history")
+
+#     if not supabase:
+#         print("❌ Supabase is NONE")
+#         return {"history": [], "total": 0}
+
+#     try:
+#         response = supabase.table("history").select("*").execute()
+
+#         print("✅ RAW RESPONSE:", response)
+
+#         # data = response.data if response.data else []
+#         data = response.model_dump().get("data", [])
+
+#         print("✅ DATA:", data)
+
+#         return {
+#             "history": data,
+#             "total": len(data)
+#         }
+
+#     except Exception as e:
+#         print("❌ ERROR:", str(e))
+#         return {"history": [], "error": str(e)}
+
+from fastapi import APIRouter, HTTPException
+from app.database import supabase
+
+router = APIRouter()
+
 @router.get("/history")
 async def get_history():
 
-    print("🔥 API HIT /history")
-
     if not supabase:
-        print("❌ Supabase is NONE")
         return {"history": [], "total": 0}
 
     try:
         response = supabase.table("history").select("*").execute()
 
-        print("✅ RAW RESPONSE:", response)
-
-        data = response.data if response.data else []
-
-        print("✅ DATA:", data)
+        data = response.model_dump().get("data", [])
 
         return {
             "history": data,
@@ -234,7 +260,6 @@ async def get_history():
         }
 
     except Exception as e:
-        print("❌ ERROR:", str(e))
         return {"history": [], "error": str(e)}
 
 
