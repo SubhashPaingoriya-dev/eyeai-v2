@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 👁️ EyeAI — Complete Setup & Run Guide
 ## Full-Stack AI/ML Eye Disease Detection
 
@@ -339,3 +340,6 @@ EyeAI is for **educational and demonstration purposes only**. It is **NOT** a me
 ---
 
 *EyeAI v1.0.0 · Built with React + FastAPI + scikit-learn*
+=======
+# eyeai-v2
+>>>>>>> 6861ccba410b353d56776ac64477223db7d85801
